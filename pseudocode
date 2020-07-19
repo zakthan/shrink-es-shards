@@ -1,0 +1,50 @@
+
+
+
+##Set to true to disable data write operations against the old index
+
+PUT /logstash-customer-25.06.2020/_settings
+{
+  "settings": {
+    
+    "index.blocks.write": true 
+  }
+}
+
+
+##Shrink old index to a new one
+
+POST /logstash-customer-25.06.2020/_shrink/oneshard-logstash-customer-25.06.2020 
+{
+  "settings": {
+    "index.number_of_replicas": 0,
+    "index.number_of_shards": 1
+    }
+}
+
+## Delete old index
+delete /logstash-customer-25.06.2020
+
+##Create the new index with the desired settings before renaming the old one
+
+PUT /logstash-customer-25.06.2020
+{
+    "settings" : {
+        "index" : {
+            "number_of_shards" : 1, 
+            "number_of_replicas" : 0 
+        }
+    }
+}
+
+##Rename new index to old index
+
+POST _reindex
+{
+  "source": {
+    "index": "oneshard-logstash-customer-25.06.2020"
+  },
+  "dest": {
+    "index": "logstash-customer-25.06.2020"
+  }
+}'
